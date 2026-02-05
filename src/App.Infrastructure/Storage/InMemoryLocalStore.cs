@@ -1,5 +1,6 @@
 ﻿using App.Core.Abstractions;
 using App.Core.Domain;
+using System.Linq;
 
 namespace App.Infrastructure.Storage;
 
@@ -69,5 +70,8 @@ public sealed class InMemoryLocalStore : ILocalStore
         }
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyList<Chunk>> GetAllChunksAsync(CancellationToken ct = default)
+    => Task.FromResult((IReadOnlyList<Chunk>)_chunks.Values.ToList());
 }
 

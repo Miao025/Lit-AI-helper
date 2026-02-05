@@ -2,8 +2,37 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="clr-namespace:App.Desktop.ViewModels"
         x:Class="App.Desktop.MainWindow"
-        Title="App.Desktop">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        Width="900" Height="600"
+        mc:Ignorable="d"
+        Title="Lit-AI-helper">
+
+	<Window.DataContext>
+		<vm:MainWindowViewModel/>
+	</Window.DataContext>
+
+	<DockPanel Margin="12">
+		<StackPanel DockPanel.Dock="Top" Spacing="8">
+
+			<TextBlock Text="Selected file:"/>
+			<TextBox Text="{Binding SelectedFilePath}" IsReadOnly="True"/>
+
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<Button Content="Pick File (.txt for now)" Click="PickFile_Click"/>
+				<Button Content="Index" Click="Index_Click"/>
+			</StackPanel>
+
+			<TextBlock Text="Query:"/>
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<TextBox Width="600" Text="{Binding Query}"/>
+				<Button Content="Search" Click="Search_Click"/>
+			</StackPanel>
+
+		</StackPanel>
+
+		<ListBox ItemsSource="{Binding Results}" Margin="0,12,0,0"/>
+	</DockPanel>
 </Window>
+
