@@ -100,3 +100,9 @@ dotnet build
 dotnet test
 dotnet run --project src/App.Desktop/App.Desktop.csproj
 ```
+
+## Watch Demo to learn the usage
+![Demo](demo1.gif)
+
+*Notes: Library stays synchronized with file changes.*
+![Screenshot](demo2.png)
