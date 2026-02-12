@@ -1,38 +1,291 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:App.Desktop.ViewModels"
         x:Class="App.Desktop.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Width="900" Height="600"
-        mc:Ignorable="d"
-        Title="Lit-AI-helper">
+        Width="1200" Height="760"
+        MinWidth="980" MinHeight="640"
+        Title="DocQuery AI"
+        Background="#F5F7FB"
+		Icon="avares://App.Desktop/Assets/app.ico">
 
-	<Window.DataContext>
-		<vm:MainWindowViewModel/>
-	</Window.DataContext>
+	<!-- ====== Local styles (keeps it consistent) ====== -->
+	<Window.Styles>
+		<!-- Typography -->
+		<Style Selector="TextBlock">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="#111827"/>
+		</Style>
 
-	<DockPanel Margin="12">
-		<StackPanel DockPanel.Dock="Top" Spacing="8">
+		<Style Selector="Button">
+			<Setter Property="Padding" Value="12,8"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="Background" Value="#FFFFFF"/>
+			<Setter Property="BorderBrush" Value="#E5E7EB"/>
+			<Setter Property="BorderThickness" Value="1"/>
+		</Style>
 
-			<TextBlock Text="Selected file:"/>
-			<TextBox Text="{Binding SelectedFilePath}" IsReadOnly="True"/>
+		<Style Selector="Button:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#F3F4F6"/>
+		</Style>
 
-			<StackPanel Orientation="Horizontal" Spacing="8">
-				<Button Content="Pick File (.txt for now)" Click="PickFile_Click"/>
-				<Button Content="Index" Click="Index_Click"/>
+		<Style Selector="TextBox">
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="BorderBrush" Value="#E5E7EB"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Background" Value="#FFFFFF"/>
+		</Style>
+
+		<!-- ListBox item selection -->
+		<Style Selector="ListBoxItem">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="Margin" Value="0,0,0,10"/>
+		</Style>
+
+		<Style Selector="ListBoxItem:selected Border.resultCard">
+			<Setter Property="BorderBrush" Value="#3B82F6"/>
+			<Setter Property="Background" Value="#EFF6FF"/>
+		</Style>
+
+		<Style Selector="ListBoxItem:pointerover Border.resultCard">
+			<Setter Property="Background" Value="#F9FAFB"/>
+		</Style>
+	</Window.Styles>
+
+	<Grid RowDefinitions="Auto,*" ColumnDefinitions="240,*">
+
+		<!-- ===== Top bar ===== -->
+		<Border Grid.Row="0" Grid.ColumnSpan="2"
+				Background="#FFFFFF"
+				BorderBrush="#E5E7EB"
+				BorderThickness="0,0,0,1"
+				Padding="16,12">
+			<DockPanel LastChildFill="True">
+				<StackPanel DockPanel.Dock="Left">
+					<TextBlock Text="DocQuery AI" FontSize="18" FontWeight="SemiBold"/>
+					<TextBlock Text="Local semantic search for your documents"
+							   FontSize="12" Foreground="#6B7280"/>
+				</StackPanel>
+
+				<TextBlock Text="{Binding StatusText}"
+						   FontSize="12"
+						   Foreground="#6B7280"
+						   VerticalAlignment="Center"
+						   HorizontalAlignment="Right"/>
+			</DockPanel>
+		</Border>
+
+		<!-- ===== Sidebar ===== -->
+		<Border Grid.Row="1" Grid.Column="0"
+				Background="#FFFFFF"
+				BorderBrush="#E5E7EB"
+				BorderThickness="0,0,1,0"
+				Padding="14">
+			<StackPanel Spacing="12">
+
+				<TextBlock Text="Library" FontSize="16" FontWeight="SemiBold"/>
+
+				<!-- Selected sources -->
+				<Border Background="#F9FAFB"
+						BorderBrush="#E5E7EB"
+						BorderThickness="1"
+						CornerRadius="12"
+						Padding="12">
+					<StackPanel Spacing="6">
+						<TextBlock Text="Selected sources" FontSize="12" Foreground="#6B7280"/>
+						<TextBlock Text="{Binding SelectedFilePath}"
+								   FontSize="12"
+								   Foreground="#111827"
+								   TextWrapping="Wrap"/>
+					</StackPanel>
+				</Border>
+
+				<!-- Buttons: Pick PDFs + Pick Folder in one row -->
+				<Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+					<Button Grid.Column="0" Content="Pick files" Click="PickFiles_Click"/>
+					<Button Grid.Column="1" Content="Pick folder" Click="PickFolder_Click"/>
+				</Grid>
+
+				<!-- Tips -->
+				<Border Background="#F9FAFB"
+						BorderBrush="#E5E7EB"
+						BorderThickness="1"
+						CornerRadius="12"
+						Padding="12">
+					<StackPanel Spacing="6">
+						<TextBlock Text="Private by design" FontSize="12" Foreground="#6B7280"/>
+						<TextBlock Text="• Enable semantic search by indexing library." FontSize="12" Foreground="#111827" TextWrapping="Wrap"/>
+						<TextBlock Text="• All processing happens locally - your data never leaves your device." FontSize="12" Foreground="#111827" TextWrapping="Wrap"/>
+					</StackPanel>
+				</Border>
+
+				<!-- Index button moved below Tips -->
+				<Button Content="Index Library" Click="Index_Click"/>
+
 			</StackPanel>
+		</Border>
 
-			<TextBlock Text="Query:"/>
-			<StackPanel Orientation="Horizontal" Spacing="8">
-				<TextBox Width="600" Text="{Binding Query}"/>
-				<Button Content="Search" Click="Search_Click"/>
-			</StackPanel>
+		<!-- ===== Main content ===== -->
+		<Grid Grid.Row="1" Grid.Column="1"
+			  Margin="14"
+			  RowDefinitions="Auto,*"
+			  ColumnDefinitions="*,420"
+			  ColumnSpacing="12"
+			  RowSpacing="12">
 
-		</StackPanel>
+			<!-- Search row -->
+			<Border Grid.Row="0" Grid.ColumnSpan="2"
+					Background="#FFFFFF"
+					BorderBrush="#E5E7EB"
+					BorderThickness="1"
+					CornerRadius="14"
+					Padding="12">
+				<DockPanel LastChildFill="True">
+					<Button Content="Search"
+							DockPanel.Dock="Right"
+							Click="Search_Click"
+							Margin="10,0,0,0"
+							Background="#2563EB"
+							BorderBrush="#2563EB"
+							Foreground="White"/>
 
-		<ListBox ItemsSource="{Binding Results}" Margin="0,12,0,0"/>
-	</DockPanel>
+					<TextBox x:Name="SearchBox"
+         Text="{Binding Query}"
+         Watermark="Search your library (semantic)"
+         FontSize="15"
+         Padding="12,10">
+						<TextBox.Styles>
+							<Style Selector="TextBox#SearchBox">
+								<Setter Property="BorderBrush" Value="#2563EB"/>
+								<Setter Property="BorderThickness" Value="0.5"/>
+							</Style>
+							<Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
+								<Setter Property="BorderBrush" Value="#2563EB"/>
+								<Setter Property="BorderThickness" Value="0.5"/>
+							</Style>
+							<Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
+								<Setter Property="BorderBrush" Value="#2563EB"/>
+								<Setter Property="BorderThickness" Value="0.5"/>
+							</Style>
+						</TextBox.Styles>
+					</TextBox>
+
+				</DockPanel>
+			</Border>
+
+			<!-- Results list (scrollable) -->
+			<Border Grid.Row="1" Grid.Column="0"
+					Background="#FFFFFF"
+					BorderBrush="#E5E7EB"
+					BorderThickness="1"
+					CornerRadius="14"
+					Padding="12">
+				<Grid RowDefinitions="Auto,*" RowSpacing="10">
+					<StackPanel Grid.Row="0" Spacing="4">
+						<TextBlock Text="Results" FontSize="14" FontWeight="SemiBold"/>
+						<TextBlock Text="Tip: double-click a result to open the PDF"
+								   FontSize="12"
+								   Foreground="#6B7280"/>
+					</StackPanel>
+
+					<!-- Key: put ListBox inside ScrollViewer OR ensure it can scroll -->
+					<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+						<ListBox ItemsSource="{Binding SearchResults}"
+								 SelectedItem="{Binding SelectedResult}"
+								 DoubleTapped="Results_DoubleTapped">
+
+							<ListBox.ItemTemplate>
+								<DataTemplate x:DataType="vm:SearchResultItem">
+
+									<Border Classes="resultCard"
+											Background="#FFFFFF"
+											BorderBrush="#E5E7EB"
+											BorderThickness="1"
+											CornerRadius="12"
+											Padding="12">
+
+										<StackPanel Spacing="8">
+
+											<!-- Row 1: similarity bar (length by score) + text -->
+											<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+												<!-- bar track -->
+												<Border Background="#2563EB"
+													CornerRadius="999"
+													Height="12"
+													HorizontalAlignment="Left"
+													Width="{Binding SimilarityBarWidth}"/>
+
+
+												<TextBlock Grid.Column="1"
+														   Text="{Binding SimilarityText}"
+														   FontSize="12"
+														   Foreground="#3730A3"
+														   VerticalAlignment="Center"/>
+											</Grid>
+
+											<!-- Row 2: title -->
+											<TextBlock Text="{Binding Title}"
+													   FontSize="13"
+													   FontWeight="SemiBold"
+													   Foreground="#111827"
+													   TextTrimming="CharacterEllipsis"/>
+
+											<!-- Row 3: short preview -->
+											<TextBlock Text="{Binding Preview}"
+													   FontSize="12"
+													   Foreground="#4B5563"
+													   TextWrapping="Wrap"
+													   MaxHeight="48"
+													   TextTrimming="CharacterEllipsis"/>
+
+										</StackPanel>
+									</Border>
+
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+							
+						</ListBox>
+					</ScrollViewer>
+				</Grid>
+			</Border>
+
+			<!-- Preview panel -->
+			<Border Grid.Row="1" Grid.Column="1"
+					Background="#FFFFFF"
+					BorderBrush="#E5E7EB"
+					BorderThickness="1"
+					CornerRadius="14"
+					Padding="12">
+				<Grid RowDefinitions="Auto,*" RowSpacing="10">
+
+					<TextBlock Grid.Row="0" Text="Preview" FontSize="14" FontWeight="SemiBold"/>
+					
+					<!-- Full title + full preview text (scrollable) -->
+					<Border Grid.Row="1"
+							Background="#F9FAFB"
+							BorderBrush="#E5E7EB"
+							BorderThickness="1"
+							CornerRadius="12"
+							Padding="12">
+						<ScrollViewer VerticalScrollBarVisibility="Auto">
+							<StackPanel Spacing="10">
+								<TextBlock Text="{Binding SelectedResult.Title}"
+										   FontSize="14"
+										   FontWeight="SemiBold"
+										   Foreground="#111827"
+										   TextWrapping="Wrap"/>
+
+								<TextBlock Text="{Binding SelectedResult.FullChunk}"
+										   FontSize="12"
+										   Foreground="#374151"
+										   TextWrapping="Wrap"/>
+							</StackPanel>
+						</ScrollViewer>
+					</Border>
+				</Grid>
+			</Border>
+
+		</Grid>
+	</Grid>
 </Window>
-

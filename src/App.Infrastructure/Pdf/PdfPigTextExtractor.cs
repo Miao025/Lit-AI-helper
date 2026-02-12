@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using App.Core.Abstractions;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace App.Infrastructure.Pdf;
 
@@ -27,11 +28,11 @@ public sealed class PdfPigTextExtractor : IPdfTextExtractor
                 ct.ThrowIfCancellationRequested();
 
                 // Simple text extraction (layout won't be perfect, but good enough to start)
-                var text = page.Text;
+                var text = ContentOrderTextExtractor.GetText(page);
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     sb.AppendLine(text.Trim());
-                    sb.AppendLine(); // separate pages
+
                 }
             }
         }
