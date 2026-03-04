@@ -1,4 +1,4 @@
-# Lit-AI-helper
+# DocQuery AI
 
 Desktop app for indexing local PDF files into a lightweight local store and running semantic search over the extracted text.
 
