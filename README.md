@@ -2,6 +2,12 @@
 
 Desktop app for indexing local PDF files into a lightweight local store and running semantic search over the extracted text.
 
+## Watch Demo to learn the usage
+![Demo](demo1.gif)
+
+*Notes: Library stays synchronized with file changes.*
+![Screenshot](demo2.png)
+
 ## Tech stack / framework
 
 - **.NET**: `net10.0` (all projects target `.NET 10`)
@@ -100,9 +106,3 @@ dotnet build
 dotnet test
 dotnet run --project src/App.Desktop/App.Desktop.csproj
 ```
-
-## Watch Demo to learn the usage
-![Demo](demo1.gif)
-
-*Notes: Library stays synchronized with file changes.*
-![Screenshot](demo2.png)
